@@ -3,426 +3,917 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CFD Study Roadmap – Baja SAE</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet">
+<title>CFD Study Roadmap Monitor</title>
 <style>
   :root {
-    --bg: #0a0800;
-    --panel: #12100a;
-    --border: #2a2010;
-    --accent: #ff9500;
-    --accent2: #00cfff;
-    --accent3: #7fff00;
-    --text: #d8cdb8;
-    --dim: #605040;
-    --glow: 0 0 20px rgba(255,149,0,0.35);
+    --bg: #08090b;
+    --surface: #111419;
+    --surface2: #171c22;
+    --line: #28313b;
+    --text: #edf2f7;
+    --muted: #9aa8b7;
+    --orange: #ff9d1b;
+    --cyan: #1ec8e8;
+    --green: #78db69;
+    --red: #ff6b6b;
+    --shadow: 0 20px 70px rgba(0,0,0,.35);
   }
-  * { margin:0; padding:0; box-sizing:border-box; }
+
+  * { box-sizing: border-box; }
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Barlow', sans-serif;
+    margin: 0;
     min-height: 100vh;
-    overflow-x: hidden;
+    background:
+      radial-gradient(circle at 16% 8%, rgba(30,200,232,.16), transparent 32%),
+      radial-gradient(circle at 90% 12%, rgba(255,157,27,.14), transparent 28%),
+      linear-gradient(180deg, #08090b, #0d1116 52%, #08090b);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
   }
-  body::before {
-    content:'';
-    position:fixed;
-    inset:0;
-    background-image:
-      linear-gradient(rgba(255,149,0,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,149,0,0.025) 1px, transparent 1px);
-    background-size:44px 44px;
-    pointer-events:none;
-    z-index:0;
+
+  button, input, select, textarea { font: inherit; }
+  button { cursor: pointer; }
+
+  .app {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 28px 0 42px;
   }
-  .container { max-width:920px; margin:0 auto; padding:40px 20px; position:relative; z-index:1; }
 
-  /* HEADER */
-  .header { text-align:center; margin-bottom:44px; }
-  .header-tag { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--accent); letter-spacing:4px; margin-bottom:10px; opacity:0; animation:fadeUp .5s ease forwards; }
-  .header h1 { font-family:'Bebas Neue',sans-serif; font-size:clamp(52px,11vw,96px); letter-spacing:6px; line-height:1; color:#fff; opacity:0; animation:fadeUp .5s .1s ease forwards; }
-  .header h1 span { color:var(--accent); text-shadow:var(--glow); }
-  .header-sub { font-size:12px; color:var(--dim); letter-spacing:2px; margin-top:10px; font-family:'Share Tech Mono',monospace; opacity:0; animation:fadeUp .5s .2s ease forwards; }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
 
-  /* PROGRESS */
-  .progress-wrap { opacity:0; animation:fadeUp .5s .3s ease forwards; margin-bottom:6px; }
-  .progress-bar { background:var(--border); height:3px; border-radius:2px; overflow:hidden; }
-  .progress-fill { height:100%; background:linear-gradient(90deg, var(--accent), var(--accent2)); width:0%; transition:width .5s ease; box-shadow:0 0 10px var(--accent); }
-  .progress-label { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--dim); display:flex; justify-content:space-between; margin-top:7px; }
-  .progress-label em { color:var(--accent); font-style:normal; }
+  .brand h1 {
+    margin: 0;
+    font-size: clamp(30px, 5vw, 58px);
+    line-height: .95;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
 
-  /* PHASE HEADER */
-  .phase-header { display:flex; align-items:center; gap:14px; margin:38px 0 14px; opacity:0; animation:fadeUp .4s ease forwards; }
-  .phase-label { font-family:'Bebas Neue',sans-serif; font-size:12px; letter-spacing:4px; padding:4px 12px; border:1px solid currentColor; white-space:nowrap; }
-  .phase-label.p1 { color:var(--accent2); border-color:var(--accent2); background:rgba(0,207,255,0.05); }
-  .phase-label.p2 { color:var(--accent); border-color:var(--accent); background:rgba(255,149,0,0.05); }
-  .phase-label.p3 { color:var(--accent3); border-color:var(--accent3); background:rgba(127,255,0,0.05); }
-  .phase-line { flex:1; height:1px; background:var(--border); }
-  .phase-name { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--dim); white-space:nowrap; }
+  .brand p {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
 
-  /* WEEK CARD */
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .btn {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--text);
+    background: var(--surface2);
+    padding: 10px 13px;
+    min-height: 40px;
+  }
+
+  .btn:hover { border-color: var(--cyan); }
+  .btn.primary { background: var(--orange); color: #161006; border-color: var(--orange); font-weight: 700; }
+  .btn.danger { color: var(--red); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .panel, .week-card, .modal-box {
+    background: rgba(17,20,25,.92);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+  }
+
+  .panel { padding: 16px; }
+
+  .progress {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .bar {
+    height: 8px;
+    border-radius: 99px;
+    background: #252c35;
+    overflow: hidden;
+  }
+
+  .fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--orange), var(--cyan), var(--green));
+    transition: width .25s ease;
+  }
+
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .phase {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 22px 0 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: .12em;
+  }
+
+  .phase::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: var(--line);
+  }
+
   .week-card {
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-left:3px solid var(--dim);
-    margin-bottom:10px;
-    cursor:pointer;
-    transition:border-color .2s, box-shadow .2s;
-    opacity:0;
-    animation:fadeUp .4s ease forwards;
+    margin-bottom: 10px;
+    overflow: hidden;
   }
-  .week-card:hover { box-shadow:var(--glow); }
-  .week-card.p1 { border-left-color:var(--accent2); }
-  .week-card.p2 { border-left-color:var(--accent); }
-  .week-card.p3 { border-left-color:var(--accent3); }
-  .week-card.done { opacity:.55; }
-  .week-card.done .wtitle h3 { text-decoration:line-through; }
 
-  .week-header { display:flex; align-items:center; gap:14px; padding:14px 18px; }
-  .wnum { font-family:'Bebas Neue',sans-serif; font-size:30px; line-height:1; min-width:46px; }
-  .p1 .wnum { color:var(--accent2); }
-  .p2 .wnum { color:var(--accent); }
-  .p3 .wnum { color:var(--accent3); }
-  .wtitle { flex:1; }
-  .wtitle h3 { font-size:15px; font-weight:600; color:#fff; letter-spacing:.4px; }
-  .wtitle p { font-size:11px; color:var(--dim); margin-top:3px; font-family:'Share Tech Mono',monospace; }
-  .wcontrols { display:flex; align-items:center; gap:10px; }
+  .week-head {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 14px;
+  }
 
-  .chk { width:24px; height:24px; border:1px solid var(--dim); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; flex-shrink:0; }
-  .chk:hover { border-color:var(--accent3); }
-  .chk.on { background:var(--accent3); border-color:var(--accent3); }
-  .chk svg { width:14px; height:14px; }
+  .week-num {
+    color: var(--orange);
+    font-weight: 800;
+    font-size: 24px;
+  }
 
-  .xbtn { font-family:'Share Tech Mono',monospace; font-size:18px; color:var(--dim); background:transparent; border:none; cursor:pointer; transition:color .2s, transform .2s; padding:2px 5px; }
-  .xbtn:hover { color:var(--accent); }
-  .xbtn.open { transform:rotate(45deg); color:var(--accent); }
+  .week-title h2 {
+    margin: 0;
+    font-size: 16px;
+  }
 
-  /* BODY */
-  .wbody { display:none; padding:0 18px 18px; border-top:1px solid var(--border); }
-  .wbody.open { display:block; }
+  .week-title p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .week-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    color: var(--text);
+    background: #0d1116;
+    display: inline-grid;
+    place-items: center;
+    font-weight: 800;
+  }
+
+  .icon-btn.done {
+    background: var(--green);
+    color: #071007;
+    border-color: var(--green);
+  }
+
+  .week-body {
+    display: none;
+    border-top: 1px solid var(--line);
+    padding: 14px;
+  }
+
+  .week-body.open { display: block; }
 
   .baja-note {
-    font-family:'Share Tech Mono',monospace;
-    font-size:11px;
-    color:var(--accent);
-    background:rgba(255,149,0,0.07);
-    border-left:2px solid var(--accent);
-    padding:7px 12px;
-    margin:14px 0 10px;
-    letter-spacing:.5px;
+    border-left: 3px solid var(--orange);
+    background: rgba(255,157,27,.08);
+    padding: 10px 12px;
+    color: #ffd59c;
+    font-size: 13px;
+    margin-bottom: 14px;
   }
 
-  .topic-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:2px; }
-  @media(max-width:580px){ .topic-grid { grid-template-columns:1fr; } }
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
 
-  .tsec h4 { font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:3px; color:var(--dim); margin-bottom:8px; }
-  .tsec ul { list-style:none; }
-  .tsec ul li { font-size:12.5px; color:var(--text); padding:3px 0 3px 14px; position:relative; line-height:1.4; }
-  .tsec ul li::before { content:'▸'; position:absolute; left:0; font-size:9px; color:var(--dim); top:5px; }
+  h3.small {
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
 
-  .rtag { display:inline-block; font-family:'Share Tech Mono',monospace; font-size:10px; padding:2px 8px; border:1px solid var(--border); margin:2px 2px 2px 14px; color:var(--dim); }
-  .rtag.free { border-color:var(--accent3); color:var(--accent3); }
-  .rtag.sw { border-color:var(--accent); color:var(--accent); }
-  .rtag.book { border-color:var(--accent2); color:var(--accent2); }
+  ul {
+    margin: 0;
+    padding-left: 18px;
+    color: #d7e0ea;
+    font-size: 13px;
+    line-height: 1.5;
+  }
 
-  .proj-box { margin-top:14px; background:rgba(255,149,0,0.04); border:1px dashed var(--border); padding:10px 14px; }
-  .proj-box h4 { font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:3px; color:var(--dim); margin-bottom:6px; }
-  .proj-box p { font-size:12.5px; color:var(--text); line-height:1.5; }
+  .tag {
+    display: inline-block;
+    margin: 0 6px 6px 0;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    padding: 5px 8px;
+    color: var(--muted);
+    font-size: 12px;
+    text-decoration: none;
+  }
 
-  /* STATS */
-  .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:38px; opacity:0; animation:fadeUp .4s .55s ease forwards; }
-  .sbox { background:var(--panel); border:1px solid var(--border); padding:18px; text-align:center; }
-  .snum { font-family:'Bebas Neue',sans-serif; font-size:42px; color:var(--accent); text-shadow:var(--glow); }
-  .slbl { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--dim); letter-spacing:2px; margin-top:4px; }
+  .tag:hover {
+    color: var(--text);
+    border-color: var(--cyan);
+  }
 
-  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  .project {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px dashed var(--line);
+    color: #dce5ee;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .side {
+    position: sticky;
+    top: 14px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .learner {
+    display: grid;
+    gap: 6px;
+  }
+
+  .learner strong { font-size: 18px; }
+  .learner span { color: var(--muted); font-size: 13px; }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .metric {
+    background: #0d1116;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px;
+  }
+
+  .metric b {
+    display: block;
+    font-size: 24px;
+    color: var(--cyan);
+  }
+
+  .metric span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .guide {
+    color: #dfe8f2;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .guide strong { color: var(--green); }
+
+  .visitor-list {
+    display: grid;
+    gap: 8px;
+    max-height: 310px;
+    overflow: auto;
+  }
+
+  .visitor {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #0d1116;
+    padding: 10px;
+  }
+
+  .visitor b { display: block; font-size: 13px; }
+  .visitor small { color: var(--muted); }
+
+  .events {
+    display: grid;
+    gap: 7px;
+    max-height: 260px;
+    overflow: auto;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .event {
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    padding-bottom: 7px;
+  }
+
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(0,0,0,.72);
+  }
+
+  .modal.show { display: flex; }
+
+  .modal-box {
+    width: min(520px, 100%);
+    padding: 22px;
+  }
+
+  .modal-box h2 {
+    margin: 0 0 8px;
+    font-size: 28px;
+  }
+
+  .modal-box p {
+    margin: 0 0 16px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .field {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .field label {
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  .field input, .field select {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #090c10;
+    color: var(--text);
+    padding: 12px;
+  }
+
+  .privacy {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .side { position: static; }
+    .topbar { align-items: flex-start; flex-direction: column; }
+    .toolbar { justify-content: flex-start; }
+  }
+
+  @media (max-width: 620px) {
+    .week-head { grid-template-columns: 46px minmax(0, 1fr); }
+    .week-actions { grid-column: 1 / -1; justify-content: flex-end; }
+    .two-col { grid-template-columns: 1fr; }
+    .metric-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
-<div class="container">
-
-  <div class="header">
-    <div class="header-tag">// Baja SAE · Off-Road Vehicle Engineering</div>
-    <h1>CFD <span>ROADMAP</span></h1>
-    <div class="header-sub">6-WEEK INTENSIVE · FUNDAMENTALS → BAJA-RELEVANT SIMULATION</div>
-  </div>
-
-  <div class="progress-wrap">
-    <div class="progress-bar"><div class="progress-fill" id="pFill"></div></div>
-    <div class="progress-label">
-      <span>WEEKS DONE: <em id="pCount">0</em>/6</span>
-      <em id="pPct">0% COMPLETE</em>
+<div class="modal show" id="entryModal">
+  <form class="modal-box" id="entryForm">
+    <h2>Enter CFD Roadmap</h2>
+    <p>This identifies the learner for progress and click monitoring. In this static version, records are saved in this browser only.</p>
+    <div class="field">
+      <label for="studentName">Student name</label>
+      <input id="studentName" required maxlength="60" placeholder="Example: Rahul Sharma">
     </div>
-  </div>
-
-  <div id="wc"></div>
-
-  <div class="stats-row">
-    <div class="sbox"><div class="snum">6</div><div class="slbl">WEEKS</div></div>
-    <div class="sbox"><div class="snum">12–15</div><div class="slbl">HRS / WEEK</div></div>
-    <div class="sbox"><div class="snum">3</div><div class="slbl">PHASES</div></div>
-  </div>
-
+    <div class="field">
+      <label for="studentLevel">Current CFD level</label>
+      <select id="studentLevel">
+        <option>Beginner</option>
+        <option>Knows fluid mechanics basics</option>
+        <option>Has used ANSYS Fluent</option>
+        <option>Preparing Baja SAE report</option>
+      </select>
+    </div>
+    <button class="btn primary" type="submit">Start Learning</button>
+    <div class="privacy">Use this only with learner consent. For real multi-user access control, connect the same events to a secure database and login system.</div>
+  </form>
 </div>
+
+<main class="app">
+  <header class="topbar">
+    <div class="brand">
+      <h1>CFD Roadmap Monitor</h1>
+      <p>6-week Baja SAE learning path with learner access, click tracking, and study guidance.</p>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="switchUserBtn" type="button">Switch Learner</button>
+      <button class="btn" id="exportBtn" type="button">Export Data</button>
+      <button class="btn danger" id="resetBtn" type="button">Reset</button>
+    </div>
+  </header>
+
+  <section class="grid">
+    <div>
+      <div class="panel progress">
+        <div class="bar"><div class="fill" id="progressFill"></div></div>
+        <div class="progress-meta">
+          <span><b id="doneCount">0</b>/6 weeks complete</span>
+          <span id="progressPct">0%</span>
+        </div>
+      </div>
+      <div id="roadmap"></div>
+    </div>
+
+    <aside class="side">
+      <div class="panel learner">
+        <strong id="activeName">No learner</strong>
+        <span id="activeMeta">Start a session to track activity.</span>
+      </div>
+
+      <div class="panel">
+        <h3 class="small">Live Study Metrics</h3>
+        <div class="metric-grid">
+          <div class="metric"><b id="clickCount">0</b><span>Total clicks</span></div>
+          <div class="metric"><b id="openCount">0</b><span>Weeks opened</span></div>
+          <div class="metric"><b id="minutesCount">0</b><span>Minutes active</span></div>
+          <div class="metric"><b id="focusWeek">W01</b><span>Suggested focus</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 class="small">Guide This Learner</h3>
+        <div class="guide" id="guideText">Ask the learner to enter the site first.</div>
+      </div>
+
+      <div class="panel">
+        <h3 class="small">Who Entered</h3>
+        <div class="visitor-list" id="visitorList"></div>
+      </div>
+
+      <div class="panel">
+        <h3 class="small">Click Activity</h3>
+        <div class="events" id="eventList"></div>
+      </div>
+    </aside>
+  </section>
+</main>
+
 <script>
-const data = [
+const weeks = [
   {
-    id:"W01", phase:"p1",
-    title:"Fluid Mechanics + CFD Theory Foundations",
-    sub:"Governing Equations · Turbulence · Discretization",
-    baja:"Off-road vehicles need CFD for cooling, aerodynamic drag, water fording, and dust ingestion analysis — all built on these fundamentals.",
-    topics:[
+    id: "W01",
+    phase: "PHASE 01 - THEORY & MESHING",
+    title: "Fluid Mechanics + CFD Theory Foundations",
+    sub: "Governing equations, turbulence, discretization",
+    baja: "Off-road vehicles need CFD for cooling, drag, water fording, and dust ingestion analysis. These topics are the base layer.",
+    topics: [
       "Fluid properties: viscosity, density, compressibility",
-      "Reynolds number, laminar vs turbulent flow regimes",
-      "Continuity equation — mass conservation",
-      "Navier-Stokes momentum equations (physical meaning)",
-      "Energy equation — heat transfer basics",
-      "Finite Volume Method (FVM) — how CFD solvers work",
-      "Truncation error, convergence, stability concepts",
-      "Boundary conditions: inlet, outlet, wall, symmetry, periodic",
-      "RANS turbulence averaging — what it means physically",
-      "k-ε vs k-ω SST — when to use which model"
+      "Reynolds number and laminar vs turbulent regimes",
+      "Continuity, Navier-Stokes, and energy equation meaning",
+      "Finite Volume Method and solver behavior",
+      "Boundary conditions: inlet, outlet, wall, symmetry",
+      "RANS turbulence averaging, k-epsilon, and k-omega SST"
     ],
-    resources:[
-      {t:"Versteeg & Malalasekera — Ch 1–4", c:"book"},
-      {t:"NPTEL CFD – IIT Kharagpur (free)", c:"free"},
-      {t:"CFD Online Wiki – Turbulence Models", c:"free"},
-      {t:"Ansys Innovation: Intro to CFD (free)", c:"free"}
+    resources: [
+      { name: "Versteeg & Malalasekera Ch 1-4", url: "https://www.pearsoned.co.in/web/books/9788131720486_An-Introduction-to-Computational-Fluid-Dynamics_W-Malalasekra.aspx" },
+      { name: "NPTEL CFD IIT Kharagpur", url: "https://nptel.ac.in/courses/112105045" },
+      { name: "CFD Online Wiki", url: "https://www.cfd-online.com/Wiki/Turbulence_modeling" },
+      { name: "Ansys Innovation intro lessons", url: "https://innovationspace.ansys.com/product/intro-to-ansys-fluent/" }
     ],
-    project:"Derive simplified N-S for 2D channel flow by hand. Calculate Re for Baja cooling airflow at 60 km/h."
+    project: "Derive simplified Navier-Stokes for 2D channel flow. Calculate Reynolds number for Baja cooling airflow at 60 km/h."
   },
   {
-    id:"W02", phase:"p1",
-    title:"Meshing Theory & Best Practices",
-    sub:"Structured · Unstructured · y+ · Inflation Layers · Quality Metrics",
-    baja:"Baja simulations — radiator ducts, suspension arm drag, intake geometry — all require well-resolved meshes to get accurate results.",
-    topics:[
+    id: "W02",
+    phase: "PHASE 01 - THEORY & MESHING",
+    title: "Meshing Theory & Best Practices",
+    sub: "Structured, unstructured, y+, inflation layers",
+    baja: "Radiator ducts, suspension arms, and intake geometry require clean meshes before solver results can be trusted.",
+    topics: [
       "Structured vs unstructured vs hybrid meshing",
-      "Mesh quality metrics: skewness, aspect ratio, orthogonality",
-      "Boundary layer mesh — inflation layers explained",
-      "y+ concept: dimensionless wall distance",
-      "y+ calculation formula — how to set first cell height",
-      "Wall functions: standard, enhanced, scalable",
-      "Local mesh refinement: face sizing, body of influence",
-      "Mesh for internal flows (ducts) vs external flows (body)",
-      "Common meshing pitfalls and how to fix them",
-      "ANSYS Meshing interface — named selections, sizing controls"
+      "Skewness, aspect ratio, orthogonality",
+      "Boundary layer mesh and inflation layers",
+      "y+ and first cell height calculation",
+      "Wall functions and local refinement",
+      "Internal vs external flow meshing pitfalls"
     ],
-    resources:[
-      {t:"ANSYS Meshing User Guide", c:"sw"},
-      {t:"Ansys Innovation: Meshing Fundamentals (free)", c:"free"},
-      {t:"CFD with a Mission – YouTube", c:"free"},
-      {t:"SimScale Mesh Documentation (free)", c:"free"}
+    resources: [
+      { name: "ANSYS Meshing User Guide", url: "https://ansyshelp.ansys.com/public/Views/Secured/corp/v251/en/pdf/ANSYS_Meshing_Users_Guide.pdf" },
+      { name: "Ansys meshing fundamentals", url: "https://www.ansys.com/content/dam/web/academic/education-resources/resources/intro-meshing-papitmdien24.pdf" },
+      { name: "CFD with a Mission", url: "https://www.youtube.com/@CFDwithaMission" },
+      { name: "SimScale mesh documentation", url: "https://www.simscale.com/docs/simulation-setup/meshing/" }
     ],
-    project:"Mesh a 2D duct cross-section (Baja intake approximation). Achieve skewness < 0.85, target y+ < 5 with inflation layers."
+    project: "Mesh a 2D duct cross-section. Aim for skewness below 0.85 and y+ below 5 with inflation layers."
   },
   {
-    id:"W03", phase:"p2",
-    title:"ANSYS Fluent — Internal Flow Simulations",
-    sub:"Pipe Flow · Duct Analysis · SIMPLE Algorithm · Convergence",
-    baja:"Internal flow is critical for Baja: engine intake restrictor (38mm rule), cooling duct sizing, and CVT airbox flow all require duct CFD.",
-    topics:[
-      "Fluent GUI walkthrough: Setup → Solution → Results",
-      "Pressure-velocity coupling: SIMPLE & SIMPLEC algorithms",
-      "Under-relaxation factors — tuning for convergence",
-      "Residual monitoring — what good convergence looks like",
-      "Inlet: velocity inlet vs mass flow rate — when to use which",
-      "Fully developed flow: periodic BC setup",
-      "Post-processing: velocity profiles, pressure drop, wall shear",
-      "Validation: compare pipe flow result vs Poiseuille analytical",
-      "38mm restrictor CFD — mass flow vs pressure drop curve",
-      "Parametric study: vary inlet velocity, compare results"
+    id: "W03",
+    phase: "PHASE 02 - ANSYS FLUENT SIMULATIONS",
+    title: "ANSYS Fluent - Internal Flow",
+    sub: "Pipe flow, duct analysis, SIMPLE algorithm",
+    baja: "Engine intake restrictors, cooling ducts, and CVT airboxes all depend on internal-flow CFD.",
+    topics: [
+      "Fluent setup, solution, and results workflow",
+      "SIMPLE and SIMPLEC coupling",
+      "Under-relaxation and residual monitoring",
+      "Velocity inlet vs mass flow inlet",
+      "Pressure drop and wall shear post-processing",
+      "38 mm restrictor mass flow curve"
     ],
-    resources:[
-      {t:"ANSYS Fluent Getting Started Guide", c:"sw"},
-      {t:"Ansys Innovation: Fluent Duct Flow (free)", c:"free"},
-      {t:"YouTube: ANSYS Fluent restrictor tutorial", c:"free"},
-      {t:"Baja SAE rulebook — Article 5 (Powertrain)", c:"free"}
+    resources: [
+      { name: "Fluent Getting Started Guide", url: "https://innovationspace.ansys.com/product/intro-to-ansys-fluent/" },
+      { name: "Ansys duct flow lessons", url: "https://innovationspace.ansys.com/courses/course-category/simcafe/" },
+      { name: "Restrictor CFD tutorials", url: "https://www.youtube.com/results?search_query=ansys+fluent+restrictor+cfd+tutorial" },
+      { name: "Baja SAE powertrain rules", url: "https://www.bajasae.net/" }
     ],
-    project:"Simulate 38mm intake restrictor flow in ANSYS Fluent. Plot pressure drop vs flow rate. Find choked flow condition."
+    project: "Simulate 38 mm intake restrictor flow. Plot pressure drop vs flow rate and identify the choked-flow region."
   },
   {
-    id:"W04", phase:"p2",
-    title:"ANSYS Fluent — External Flow & Thermal",
-    sub:"Aerodynamic Drag · Cooling Radiator · Conjugate Heat Transfer",
-    baja:"Baja cars operate in dusty, high-temp off-road conditions. Reducing drag and preventing engine overheating are direct performance and reliability factors.",
-    topics:[
-      "External flow domain sizing — blockage ratio rules",
-      "Freestream farfield boundary conditions",
-      "Turbulence intensity and length scale at inlet",
-      "Drag coefficient extraction from Fluent",
-      "Pressure coefficient (Cp) distribution visualization",
-      "Radiator modeled as porous media — resistance coefficients",
-      "Conjugate Heat Transfer (CHT) setup in Fluent",
-      "Thermal boundary conditions: heat flux, wall temperature",
-      "Fan/blower simulation using fan BC or actuator disk",
-      "Cooling system: comparing ducted vs open radiator configs"
+    id: "W04",
+    phase: "PHASE 02 - ANSYS FLUENT SIMULATIONS",
+    title: "External Flow & Thermal",
+    sub: "Aerodynamic drag, radiator cooling, heat transfer",
+    baja: "Baja vehicles need low drag and reliable cooling in dusty, high-temperature off-road operation.",
+    topics: [
+      "External flow domain sizing and blockage",
+      "Freestream boundary conditions",
+      "Drag coefficient and pressure coefficient",
+      "Radiator porous media modeling",
+      "Conjugate heat transfer setup",
+      "Fan boundary conditions and duct comparison"
     ],
-    resources:[
-      {t:"Fluent Theory Guide – Porous Media", c:"sw"},
-      {t:"Ansys Innovation: Heat Transfer in Fluent (free)", c:"free"},
-      {t:"SAE Paper: Baja SAE Thermal Management", c:"free"},
-      {t:"YouTube: CFD radiator porous media setup", c:"free"}
+    resources: [
+      { name: "Fluent porous media theory", url: "https://ansyshelp.ansys.com/public/Views/Secured/corp/v251/en/pdf/Ansys_Fluent_Theory_Guide.pdf" },
+      { name: "Ansys heat transfer lessons", url: "https://www.ansys.com/training-center/course-catalog/fluids/ansys-fluent-heat-transfer-modeling" },
+      { name: "Baja SAE thermal management papers", url: "https://scholar.google.com/scholar?q=Baja+SAE+thermal+management+CFD" },
+      { name: "Radiator porous media tutorials", url: "https://www.youtube.com/results?search_query=ansys+fluent+radiator+porous+media+tutorial" }
     ],
-    project:"Simulate Baja vehicle frontal area external flow at 60 km/h. Extract Cd. Then model radiator as porous zone — compare cooling mass flow for two duct angles."
+    project: "Simulate vehicle frontal flow at 60 km/h. Extract Cd, then compare cooling mass flow for two radiator duct angles."
   },
   {
-    id:"W05", phase:"p3",
-    title:"Mesh Independence & Validation",
-    sub:"GCI · Richardson Extrapolation · Uncertainty Analysis · OpenFOAM Intro",
-    baja:"SAE competition reports and technical scrutineering require justified, validated simulation results — not just pretty contour plots.",
-    topics:[
-      "Mesh independence study procedure step-by-step",
-      "Grid Convergence Index (GCI) method",
-      "Richardson extrapolation for error estimation",
-      "Effect of y+ choice on turbulence model accuracy",
-      "Verification vs validation — key difference",
-      "OpenFOAM directory structure: 0, constant, system",
-      "blockMesh: building simple geometries in OpenFOAM",
-      "simpleFoam solver — steady incompressible flow",
-      "fvSolution, fvSchemes, controlDict — key settings",
-      "ParaView post-processing: glyphs, streamlines, clip planes"
+    id: "W05",
+    phase: "PHASE 03 - VALIDATION & CAPSTONE",
+    title: "Mesh Independence & Validation",
+    sub: "GCI, Richardson extrapolation, OpenFOAM intro",
+    baja: "Competition reports need justified simulation confidence, not only good-looking contours.",
+    topics: [
+      "Mesh independence study workflow",
+      "Grid Convergence Index",
+      "Richardson extrapolation",
+      "Verification vs validation",
+      "OpenFOAM folder structure",
+      "ParaView streamlines, clips, and plots"
     ],
-    resources:[
-      {t:"NASA CFD V&V Guidelines (free)", c:"free"},
-      {t:"OpenFOAM User Guide (free)", c:"free"},
-      {t:"Jozsef Nagy – OpenFOAM YouTube series", c:"free"},
-      {t:"AIAA V&V Guide for CFD (free abstract)", c:"free"}
+    resources: [
+      { name: "NASA CFD V&V guidelines", url: "https://www.grc.nasa.gov/www/wind/valid/tutorial/overview.html" },
+      { name: "OpenFOAM User Guide", url: "https://www.openfoam.com/documentation/user-guide" },
+      { name: "Jozsef Nagy OpenFOAM series", url: "https://www.youtube.com/channel/UCjdgpuxuAxH9BqheyE82Vvw" },
+      { name: "AIAA V&V guide", url: "https://www.grc.nasa.gov/www/wind/valid/tutorial/tutorial.html" }
     ],
-    project:"Run 3 mesh refinements on W04 radiator duct case. Compute GCI. Run same case in OpenFOAM simpleFoam and compare results."
+    project: "Run three mesh refinements on the radiator duct case. Compute GCI and compare with a simpleFoam version."
   },
   {
-    id:"W06", phase:"p3",
-    title:"Capstone — Baja SAE CFD Study",
-    sub:"Full Workflow · Technical Report · Team Presentation",
-    baja:"This is your deliverable: a complete, justified CFD study relevant to your Baja SAE vehicle — intake, cooling, aero drag, or suspension arm drag reduction.",
-    topics:[
-      "Choose focus: restrictor flow OR cooling system OR body drag",
-      "CAD cleanup for CFD: remove small features, create flow volume",
-      "Full meshing with documented y+, mesh quality check",
-      "Solver setup with justified turbulence model selection",
-      "Mesh independence study (min 3 refinement levels)",
-      "Design comparison: simulate 2 configurations, compare KPIs",
-      "Uncertainty quantification and result confidence statement",
-      "Contour plots, velocity vectors, pressure maps — publication quality",
-      "Technical report: intro, methodology, results, conclusion",
-      "5-minute presentation slide deck for team/competition"
+    id: "W06",
+    phase: "PHASE 03 - VALIDATION & CAPSTONE",
+    title: "Capstone - Baja SAE CFD Study",
+    sub: "Full workflow, report, team presentation",
+    baja: "This becomes a defensible CFD deliverable for intake, cooling, body drag, or suspension drag.",
+    topics: [
+      "Select one Baja CFD focus area",
+      "Clean CAD and create flow volume",
+      "Document mesh quality and y+",
+      "Justify turbulence model choice",
+      "Run mesh independence and design comparison",
+      "Prepare technical report and 5-minute presentation"
     ],
-    resources:[
-      {t:"ANSYS Workbench (your install)", c:"sw"},
-      {t:"SAE Technical Paper formatting guide (free)", c:"free"},
-      {t:"Baja SAE Design Report examples (free)", c:"free"},
-      {t:"CFD Post / ParaView for report figures", c:"free"}
+    resources: [
+      { name: "ANSYS Workbench", url: "https://www.ansys.com/academic/students/ansys-student" },
+      { name: "SAE report format", url: "https://www.sae.org/binaries/content/assets/cm/content/participate/author/styles.pdf" },
+      { name: "Baja SAE design report examples", url: "https://www.bajasae.net/" },
+      { name: "CFD Post or ParaView", url: "https://www.paraview.org/computational-fluid-dynamics/" }
     ],
-    project:"Complete CFD study with mesh independence, design comparison, and a 4–6 page technical report. Ready for Baja SAE design event presentation."
+    project: "Complete a CFD study with validation, design comparison, and a 4-6 page technical report."
   }
 ];
 
-const phases = [
-  { id:"p1", label:"PHASE 01", name:"THEORY & MESHING", start:"W01" },
-  { id:"p2", label:"PHASE 02", name:"ANSYS FLUENT SIMULATIONS", start:"W03" },
-  { id:"p3", label:"PHASE 03", name:"VALIDATION & CAPSTONE", start:"W05" }
-];
+const storeKey = "cfd_monitor_state_v1";
+const state = loadState();
+let activeId = state.activeId;
+let sessionStarted = Date.now();
 
-const wc = document.getElementById("wc");
-let done = new Set(JSON.parse(localStorage.getItem("baja_cfd_done")||"[]"));
-
-function save(){ try{localStorage.setItem("baja_cfd_done",JSON.stringify([...done]));}catch(e){} updateProg(); }
-
-function updateProg(){
-  const n=done.size, pct=Math.round(n/6*100);
-  document.getElementById("pCount").textContent=n;
-  document.getElementById("pPct").textContent=pct+"% COMPLETE";
-  document.getElementById("pFill").style.width=pct+"%";
+function loadState() {
+  try {
+    return JSON.parse(localStorage.getItem(storeKey)) || { activeId: null, visitors: {}, events: [] };
+  } catch (error) {
+    return { activeId: null, visitors: {}, events: [] };
+  }
 }
 
-data.forEach((w,i)=>{
-  const ph = phases.find(p=>p.start===w.id);
-  if(ph){
-    const d=document.createElement("div");
-    d.className="phase-header";
-    d.style.animationDelay=(0.28+i*0.06)+"s";
-    d.innerHTML=`<div class="phase-label ${ph.id}">${ph.label}</div><div class="phase-line"></div><div class="phase-name">${ph.name}</div>`;
-    wc.appendChild(d);
+function saveState() {
+  localStorage.setItem(storeKey, JSON.stringify(state));
+}
+
+function nowText(ts = Date.now()) {
+  return new Date(ts).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+}
+
+function activeVisitor() {
+  return activeId ? state.visitors[activeId] : null;
+}
+
+function makeId() {
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
   }
+  return String(Date.now() + Math.random());
+}
 
-  const card=document.createElement("div");
-  card.className=`week-card ${w.phase}${done.has(w.id)?" done":""}`;
-  card.id="c-"+w.id;
-  card.style.animationDelay=(0.32+i*0.06)+"s";
+function logEvent(type, label, weekId = "") {
+  const visitor = activeVisitor();
+  if (!visitor) return;
+  visitor.clicks += 1;
+  visitor.lastSeen = Date.now();
+  state.events.unshift({
+    id: makeId(),
+    visitorId: visitor.id,
+    name: visitor.name,
+    type,
+    label,
+    weekId,
+    ts: Date.now()
+  });
+  state.events = state.events.slice(0, 160);
+  saveState();
+  renderMonitor();
+}
 
-  const topicsHTML=w.topics.map(t=>`<li>${t}</li>`).join("");
-  const resHTML=w.resources.map(r=>`<span class="rtag ${r.c}">${r.t}</span>`).join("");
-  const isDone=done.has(w.id);
+function renderRoadmap() {
+  const root = document.getElementById("roadmap");
+  root.innerHTML = "";
+  let lastPhase = "";
 
-  card.innerHTML=`
-    <div class="week-header">
-      <div class="wnum">${w.id}</div>
-      <div class="wtitle">
-        <h3>${w.title}</h3>
-        <p>${w.sub}</p>
-      </div>
-      <div class="wcontrols">
-        <button class="chk${isDone?" on":""}" data-id="${w.id}">
-          <svg viewBox="0 0 14 14" fill="none" stroke="${isDone?"#0a0800":"currentColor"}" stroke-width="2.2"><polyline points="2,7 5.5,11 12,3"/></svg>
-        </button>
-        <button class="xbtn" data-id="${w.id}">+</button>
-      </div>
-    </div>
-    <div class="wbody" id="b-${w.id}">
-      <div class="baja-note">⬡ BAJA SAE RELEVANCE — ${w.baja}</div>
-      <div class="topic-grid">
-        <div class="tsec">
-          <h4>// 10 Topics This Week</h4>
-          <ul>${topicsHTML}</ul>
+  weeks.forEach(week => {
+    if (week.phase !== lastPhase) {
+      lastPhase = week.phase;
+      const phase = document.createElement("div");
+      phase.className = "phase";
+      phase.textContent = week.phase;
+      root.appendChild(phase);
+    }
+
+    const card = document.createElement("article");
+    card.className = "week-card";
+    card.dataset.week = week.id;
+    card.innerHTML = `
+      <div class="week-head">
+        <div class="week-num">${week.id}</div>
+        <div class="week-title">
+          <h2>${week.title}</h2>
+          <p>${week.sub}</p>
         </div>
-        <div class="tsec">
-          <h4>// Resources</h4>
-          ${resHTML}
-          <div class="proj-box" style="margin-top:14px">
-            <h4>// WEEK PROJECT</h4>
-            <p>${w.project}</p>
+        <div class="week-actions">
+          <button class="icon-btn complete-btn" title="Mark complete" type="button">OK</button>
+          <button class="icon-btn open-btn" title="Open week" type="button">+</button>
+        </div>
+      </div>
+      <div class="week-body">
+        <div class="baja-note">${week.baja}</div>
+        <div class="two-col">
+          <div>
+            <h3 class="small">Topics This Week</h3>
+            <ul>${week.topics.map(topic => `<li>${topic}</li>`).join("")}</ul>
+          </div>
+          <div>
+            <h3 class="small">Resources</h3>
+            ${week.resources.map(resource => `<a class="tag resource-btn" href="${resource.url}" target="_blank" rel="noopener noreferrer">${resource.name}</a>`).join("")}
+            <div class="project"><strong>Week project:</strong> ${week.project}</div>
           </div>
         </div>
       </div>
-    </div>`;
-  wc.appendChild(card);
+    `;
+    root.appendChild(card);
+  });
+  refreshRoadmapState();
+}
+
+function refreshRoadmapState() {
+  const visitor = activeVisitor();
+  const done = new Set(visitor ? visitor.done : []);
+  document.querySelectorAll(".week-card").forEach(card => {
+    const id = card.dataset.week;
+    const completeBtn = card.querySelector(".complete-btn");
+    completeBtn.classList.toggle("done", done.has(id));
+    completeBtn.textContent = done.has(id) ? "OK" : "--";
+  });
+}
+
+function suggestedWeek(visitor) {
+  if (!visitor) return "W01";
+  return weeks.find(week => !visitor.done.includes(week.id))?.id || "W06";
+}
+
+function guideFor(visitor) {
+  if (!visitor) return "Ask the learner to enter the site first.";
+  const focus = suggestedWeek(visitor);
+  const opened = visitor.opened.length;
+  const completed = visitor.done.length;
+  const recent = state.events.find(event => event.visitorId === visitor.id);
+
+  if (completed === 0 && opened === 0) {
+    return `<strong>Start with W01.</strong> Ask ${visitor.name} to open the first week and write down Reynolds number, boundary condition, and turbulence model definitions before touching Fluent.`;
+  }
+  if (visitor.opened.includes("W03") && !visitor.done.includes("W01")) {
+    return `<strong>Slow down and reinforce fundamentals.</strong> ${visitor.name} is jumping to Fluent before completing W01. Give them a short Navier-Stokes and boundary-condition checkpoint.`;
+  }
+  if (focus === "W02") {
+    return `<strong>Next focus: W02 meshing.</strong> Have ${visitor.name} calculate first cell height and explain y+ before starting a Baja duct mesh.`;
+  }
+  if (focus === "W04") {
+    return `<strong>Next focus: W04 thermal/external flow.</strong> Ask for drag coefficient extraction plus one radiator duct comparison.`;
+  }
+  if (focus === "W06") {
+    return `<strong>Capstone mode.</strong> Guide ${visitor.name} toward one full Baja CFD report with mesh independence and a design comparison.`;
+  }
+  return `<strong>Next focus: ${focus}.</strong> Recent activity: ${recent ? recent.label : "no recent click"}. Ask for a small written summary before marking the week complete.`;
+}
+
+function renderMonitor() {
+  const visitor = activeVisitor();
+  const doneCount = visitor ? visitor.done.length : 0;
+  const pct = Math.round((doneCount / weeks.length) * 100);
+
+  document.getElementById("activeName").textContent = visitor ? visitor.name : "No learner";
+  document.getElementById("activeMeta").textContent = visitor ? `${visitor.level} | entered ${nowText(visitor.firstSeen)}` : "Start a session to track activity.";
+  document.getElementById("doneCount").textContent = doneCount;
+  document.getElementById("progressPct").textContent = `${pct}%`;
+  document.getElementById("progressFill").style.width = `${pct}%`;
+  document.getElementById("clickCount").textContent = visitor ? visitor.clicks : 0;
+  document.getElementById("openCount").textContent = visitor ? visitor.opened.length : 0;
+  document.getElementById("minutesCount").textContent = visitor ? Math.max(0, Math.round((Date.now() - sessionStarted) / 60000)) : 0;
+  document.getElementById("focusWeek").textContent = suggestedWeek(visitor);
+  document.getElementById("guideText").innerHTML = guideFor(visitor);
+
+  const visitors = Object.values(state.visitors).sort((a, b) => b.lastSeen - a.lastSeen);
+  document.getElementById("visitorList").innerHTML = visitors.length ? visitors.map(item => `
+    <button class="visitor" type="button" data-visitor="${item.id}">
+      <span><b>${item.name}</b><small>${item.level}<br>${item.done.length}/6 complete | ${item.clicks} clicks</small></span>
+      <small>${nowText(item.lastSeen)}</small>
+    </button>
+  `).join("") : "<small>No learners yet.</small>";
+
+  const visibleEvents = visitor ? state.events.filter(event => event.visitorId === visitor.id) : state.events;
+  document.getElementById("eventList").innerHTML = visibleEvents.length ? visibleEvents.slice(0, 40).map(event => `
+    <div class="event"><b>${event.name}</b> ${event.label}<br><small>${nowText(event.ts)}</small></div>
+  `).join("") : "<small>No clicks recorded yet.</small>";
+
+  refreshRoadmapState();
+}
+
+function openEntry() {
+  document.getElementById("entryModal").classList.add("show");
+  document.getElementById("studentName").focus();
+}
+
+document.getElementById("entryForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const name = document.getElementById("studentName").value.trim();
+  const level = document.getElementById("studentLevel").value;
+  if (!name) return;
+
+  const id = makeId();
+  state.visitors[id] = {
+    id,
+    name,
+    level,
+    firstSeen: Date.now(),
+    lastSeen: Date.now(),
+    clicks: 0,
+    opened: [],
+    done: []
+  };
+  activeId = id;
+  state.activeId = id;
+  sessionStarted = Date.now();
+  state.events.unshift({ id: id + "-enter", visitorId: id, name, type: "entry", label: "entered the CFD website", weekId: "", ts: Date.now() });
+  saveState();
+  document.getElementById("entryModal").classList.remove("show");
+  event.target.reset();
+  renderMonitor();
 });
 
-wc.addEventListener("click",e=>{
-  const chk=e.target.closest(".chk");
-  const xbtn=e.target.closest(".xbtn");
-  const hdr=e.target.closest(".week-header");
+document.getElementById("roadmap").addEventListener("click", event => {
+  const card = event.target.closest(".week-card");
+  if (!card || !activeVisitor()) {
+    if (!activeVisitor()) openEntry();
+    return;
+  }
+  const visitor = activeVisitor();
+  const weekId = card.dataset.week;
 
-  if(chk){
-    e.stopPropagation();
-    const id=chk.dataset.id;
-    const card=document.getElementById("c-"+id);
-    if(done.has(id)){
-      done.delete(id);
-      chk.classList.remove("on");
-      chk.querySelector("polyline").setAttribute("stroke","currentColor");
-      card.classList.remove("done");
+  if (event.target.closest(".complete-btn")) {
+    if (visitor.done.includes(weekId)) {
+      visitor.done = visitor.done.filter(id => id !== weekId);
+      logEvent("complete_removed", `removed completion for ${weekId}`, weekId);
     } else {
-      done.add(id);
-      chk.classList.add("on");
-      chk.querySelector("polyline").setAttribute("stroke","#0a0800");
-      card.classList.add("done");
+      visitor.done.push(weekId);
+      logEvent("complete_added", `completed ${weekId}`, weekId);
     }
-    save(); return;
+    saveState();
+    renderMonitor();
+    return;
   }
 
-  const toggleId = xbtn ? xbtn.dataset.id : hdr ? hdr.closest(".week-card").id.replace("c-","") : null;
-  if(toggleId){
-    const body=document.getElementById("b-"+toggleId);
-    const btn=document.querySelector(`.xbtn[data-id="${toggleId}"]`);
-    body.classList.toggle("open");
-    btn.classList.toggle("open");
+  if (event.target.closest(".resource-btn")) {
+    logEvent("resource", `clicked resource in ${weekId}: ${event.target.textContent}`, weekId);
+    return;
   }
+
+  const body = card.querySelector(".week-body");
+  const openBtn = card.querySelector(".open-btn");
+  const isOpen = body.classList.toggle("open");
+  openBtn.textContent = isOpen ? "-" : "+";
+  if (!visitor.opened.includes(weekId)) visitor.opened.push(weekId);
+  logEvent("open_week", `${isOpen ? "opened" : "closed"} ${weekId}`, weekId);
 });
 
-updateProg();
+document.getElementById("visitorList").addEventListener("click", event => {
+  const btn = event.target.closest("[data-visitor]");
+  if (!btn) return;
+  activeId = btn.dataset.visitor;
+  state.activeId = activeId;
+  sessionStarted = Date.now();
+  saveState();
+  renderMonitor();
+});
+
+document.getElementById("switchUserBtn").addEventListener("click", () => openEntry());
+
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "cfd-learner-monitor-data.json";
+  link.click();
+  URL.revokeObjectURL(link.href);
+  logEvent("export", "exported monitoring data");
+});
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  const ok = confirm("Clear all learner records stored in this browser?");
+  if (!ok) return;
+  localStorage.removeItem(storeKey);
+  state.activeId = null;
+  state.visitors = {};
+  state.events = [];
+  activeId = null;
+  saveState();
+  renderMonitor();
+  openEntry();
+});
+
+setInterval(renderMonitor, 30000);
+renderRoadmap();
+if (activeId && state.visitors[activeId]) {
+  document.getElementById("entryModal").classList.remove("show");
+}
+renderMonitor();
 </script>
 </body>
 </html>
