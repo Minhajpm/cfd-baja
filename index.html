@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -474,7 +475,7 @@
         <div class="metric-grid">
           <div class="metric"><b id="clickCount">0</b><span>Total clicks</span></div>
           <div class="metric"><b id="openCount">0</b><span>Weeks opened</span></div>
-          <div class="metric"><b id="minutesCount">0</b><span>Minutes active</span></div>
+          <div class="metric"><b id="minutesCount">0m</b><span>Time spent</span></div>
           <div class="metric"><b id="focusWeek">W01</b><span>Suggested focus</span></div>
         </div>
       </div>
@@ -490,7 +491,7 @@
       </div>
 
       <div class="panel">
-        <h3 class="small">Click Activity</h3>
+        <h3 class="small">Click & Time Activity</h3>
         <div class="events" id="eventList"></div>
       </div>
     </aside>
@@ -636,11 +637,18 @@ const weeks = [
 const storeKey = "cfd_monitor_state_v1";
 const state = loadState();
 let activeId = state.activeId;
-let sessionStarted = Date.now();
+let lastTimeSync = Date.now();
 
 function loadState() {
   try {
-    return JSON.parse(localStorage.getItem(storeKey)) || { activeId: null, visitors: {}, events: [] };
+    const saved = JSON.parse(localStorage.getItem(storeKey)) || { activeId: null, visitors: {}, events: [] };
+    Object.values(saved.visitors || {}).forEach(visitor => {
+      visitor.timeSpentMs = visitor.timeSpentMs || 0;
+      visitor.opened = visitor.opened || [];
+      visitor.done = visitor.done || [];
+      visitor.clicks = visitor.clicks || 0;
+    });
+    return saved;
   } catch (error) {
     return { activeId: null, visitors: {}, events: [] };
   }
@@ -650,8 +658,25 @@ function saveState() {
   localStorage.setItem(storeKey, JSON.stringify(state));
 }
 
+function syncTimeSpent() {
+  const visitor = activeVisitor();
+  const now = Date.now();
+  if (visitor && !document.hidden) {
+    visitor.timeSpentMs = (visitor.timeSpentMs || 0) + Math.max(0, now - lastTimeSync);
+    visitor.lastSeen = now;
+  }
+  lastTimeSync = now;
+}
+
 function nowText(ts = Date.now()) {
   return new Date(ts).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+}
+
+function formatDuration(ms = 0) {
+  const totalMinutes = Math.max(0, Math.floor(ms / 60000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours ? `${hours}h ${minutes}m` : `${minutes}m`;
 }
 
 function activeVisitor() {
@@ -668,6 +693,7 @@ function makeId() {
 function logEvent(type, label, weekId = "") {
   const visitor = activeVisitor();
   if (!visitor) return;
+  syncTimeSpent();
   visitor.clicks += 1;
   visitor.lastSeen = Date.now();
   state.events.unshift({
@@ -775,25 +801,26 @@ function guideFor(visitor) {
 }
 
 function renderMonitor() {
+  syncTimeSpent();
   const visitor = activeVisitor();
   const doneCount = visitor ? visitor.done.length : 0;
   const pct = Math.round((doneCount / weeks.length) * 100);
 
   document.getElementById("activeName").textContent = visitor ? visitor.name : "No learner";
-  document.getElementById("activeMeta").textContent = visitor ? `${visitor.level} | entered ${nowText(visitor.firstSeen)}` : "Start a session to track activity.";
+  document.getElementById("activeMeta").textContent = visitor ? `${visitor.level} | entered ${nowText(visitor.firstSeen)} | time spent ${formatDuration(visitor.timeSpentMs)}` : "Start a session to track activity.";
   document.getElementById("doneCount").textContent = doneCount;
   document.getElementById("progressPct").textContent = `${pct}%`;
   document.getElementById("progressFill").style.width = `${pct}%`;
   document.getElementById("clickCount").textContent = visitor ? visitor.clicks : 0;
   document.getElementById("openCount").textContent = visitor ? visitor.opened.length : 0;
-  document.getElementById("minutesCount").textContent = visitor ? Math.max(0, Math.round((Date.now() - sessionStarted) / 60000)) : 0;
+  document.getElementById("minutesCount").textContent = visitor ? formatDuration(visitor.timeSpentMs) : "0m";
   document.getElementById("focusWeek").textContent = suggestedWeek(visitor);
   document.getElementById("guideText").innerHTML = guideFor(visitor);
 
   const visitors = Object.values(state.visitors).sort((a, b) => b.lastSeen - a.lastSeen);
   document.getElementById("visitorList").innerHTML = visitors.length ? visitors.map(item => `
     <button class="visitor" type="button" data-visitor="${item.id}">
-      <span><b>${item.name}</b><small>${item.level}<br>${item.done.length}/6 complete | ${item.clicks} clicks</small></span>
+      <span><b>${item.name}</b><small>${item.level}<br>${item.done.length}/6 complete | ${item.clicks} clicks | ${formatDuration(item.timeSpentMs)} spent</small></span>
       <small>${nowText(item.lastSeen)}</small>
     </button>
   `).join("") : "<small>No learners yet.</small>";
@@ -825,12 +852,13 @@ document.getElementById("entryForm").addEventListener("submit", event => {
     firstSeen: Date.now(),
     lastSeen: Date.now(),
     clicks: 0,
+    timeSpentMs: 0,
     opened: [],
     done: []
   };
   activeId = id;
   state.activeId = id;
-  sessionStarted = Date.now();
+  lastTimeSync = Date.now();
   state.events.unshift({ id: id + "-enter", visitorId: id, name, type: "entry", label: "entered the CFD website", weekId: "", ts: Date.now() });
   saveState();
   document.getElementById("entryModal").classList.remove("show");
@@ -876,9 +904,10 @@ document.getElementById("roadmap").addEventListener("click", event => {
 document.getElementById("visitorList").addEventListener("click", event => {
   const btn = event.target.closest("[data-visitor]");
   if (!btn) return;
+  syncTimeSpent();
   activeId = btn.dataset.visitor;
   state.activeId = activeId;
-  sessionStarted = Date.now();
+  lastTimeSync = Date.now();
   saveState();
   renderMonitor();
 });
@@ -886,6 +915,8 @@ document.getElementById("visitorList").addEventListener("click", event => {
 document.getElementById("switchUserBtn").addEventListener("click", () => openEntry());
 
 document.getElementById("exportBtn").addEventListener("click", () => {
+  syncTimeSpent();
+  saveState();
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
@@ -903,12 +934,27 @@ document.getElementById("resetBtn").addEventListener("click", () => {
   state.visitors = {};
   state.events = [];
   activeId = null;
+  lastTimeSync = Date.now();
   saveState();
   renderMonitor();
   openEntry();
 });
 
-setInterval(renderMonitor, 30000);
+document.addEventListener("visibilitychange", () => {
+  syncTimeSpent();
+  saveState();
+  renderMonitor();
+});
+
+window.addEventListener("beforeunload", () => {
+  syncTimeSpent();
+  saveState();
+});
+
+setInterval(() => {
+  renderMonitor();
+  saveState();
+}, 1000);
 renderRoadmap();
 if (activeId && state.visitors[activeId]) {
   document.getElementById("entryModal").classList.remove("show");
